@@ -4,19 +4,23 @@
 'use client';
 
 import { useState } from 'react';
-import { OrderDetail } from '@/lib/supabase';
-import { Search, MoreVertical, Trash2 } from 'lucide-react';
+import { OrderDetail, Sewer } from '@/lib/supabase';
+import { Search, MoreVertical, Trash2, UserPlus, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface OrdersTableProps {
   orders: OrderDetail[];
-  onVoidOrder: (orderId: string) => void;
+  sewers: Sewer[];
+  onReassign: (orderId: string, newSewerId: string) => Promise<void>;
+  onToggleComplete: (orderId: string) => Promise<void>;
+  onVoid: (orderId: string) => Promise<void>;
 }
 
-export default function OrdersTable({ orders, onVoidOrder }: OrdersTableProps) {
+export default function OrdersTable({ orders, sewers, onReassign, onToggleComplete, onVoid }: OrdersTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'void'>('all');
   const [showActionsFor, setShowActionsFor] = useState<string | null>(null);
+  const [showReassignFor, setShowReassignFor] = useState<string | null>(null);
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -124,10 +128,39 @@ export default function OrdersTable({ orders, onVoidOrder }: OrdersTableProps) {
                     
                     {showActionsFor === order.id && (
                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 z-10">
+                        {/* Toggle Complete/Uncomplete */}
+                        {order.status !== 'void' && (
+                          <button
+                            onClick={async () => {
+                              await onToggleComplete(order.id);
+                              setShowActionsFor(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-2"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            {order.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete'}
+                          </button>
+                        )}
+                        
+                        {/* Reassign */}
+                        {order.status !== 'void' && order.status !== 'completed' && (
+                          <button
+                            onClick={() => {
+                              setShowReassignFor(order.id);
+                              setShowActionsFor(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                            Reassign
+                          </button>
+                        )}
+                        
+                        {/* Void */}
                         <button
                           onClick={() => {
                             if (confirm(`Are you sure you want to void order ${order.order_number}?`)) {
-                              onVoidOrder(order.id);
+                              onVoid(order.id);
                               setShowActionsFor(null);
                             }
                           }}
@@ -135,6 +168,33 @@ export default function OrdersTable({ orders, onVoidOrder }: OrdersTableProps) {
                         >
                           <Trash2 className="w-4 h-4" />
                           Void Order
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* Reassign Modal */}
+                    {showReassignFor === order.id && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-neutral-200 z-20 p-4">
+                        <h4 className="font-semibold text-sm mb-3">Reassign to:</h4>
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {sewers.filter(s => s.is_active).map(sewer => (
+                            <button
+                              key={sewer.id}
+                              onClick={async () => {
+                                await onReassign(order.id, sewer.id);
+                                setShowReassignFor(null);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-100 rounded"
+                            >
+                              {sewer.name}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => setShowReassignFor(null)}
+                          className="mt-3 w-full px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100 rounded"
+                        >
+                          Cancel
                         </button>
                       </div>
                     )}
