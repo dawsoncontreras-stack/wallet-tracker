@@ -174,7 +174,7 @@ useEffect(() => {
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4">
             <h3 className="text-xl font-bold text-neutral-900">Complete Order?</h3>
             <p className="text-neutral-600">
-              Would you like to complete order <span className="font-semibold">{confirmingOrder.order_number}</span> ({confirmingOrder.wallet_type_name})?
+              Would you like to complete order <span className="font-semibold">{confirmingOrder.order_number}</span> ({confirmingOrder.wallet_type})?
             </p>
             <div className="flex gap-3">
               <button
@@ -309,8 +309,8 @@ useEffect(() => {
                 order={{
                   id: order.id,
                   orderNumber: order.order_number,
-                  walletType: order.wallet_type,
-                  walletTypeName: order.wallet_type_name,
+                  walletType: order.wallet_type || 'Unknown',
+                  walletTypeName: order.wallet_type || 'Unknown', // Use wallet_type directly
                   points: order.points,
                   status: order.status,
                   ordererName: order.orderer_name || undefined,

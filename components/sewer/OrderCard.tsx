@@ -1,3 +1,6 @@
+// components/sewer/OrderCard.tsx
+// UPDATED to handle new wallet_type format (full product names)
+
 'use client';
 
 import { Order } from '@/lib/mockData';
@@ -29,6 +32,7 @@ export default function OrderCard({
               <Package className="w-6 h-6 text-primary-600" />
             </div>
             <div>
+              {/* Display walletTypeName (full product name) */}
               <h3 className="font-semibold text-neutral-900">{order.walletTypeName}</h3>
               <p className="text-sm text-neutral-500">{order.orderNumber}</p>
             </div>
@@ -52,38 +56,32 @@ export default function OrderCard({
             <span>
               {order.completedAt 
                 ? `Completed ${formatDistanceToNow(order.completedAt, { addSuffix: true })}`
+                : order.claimedAt
+                ? `Claimed ${formatDistanceToNow(order.claimedAt, { addSuffix: true })}`
                 : `Created ${formatDistanceToNow(order.createdAt, { addSuffix: true })}`
               }
             </span>
           </div>
-          
-          {order.completedAt && (
-            <div className="text-neutral-600">
-              <span className="font-medium">Completed:</span> {format(order.completedAt, 'MMM d, h:mm a')}
-            </div>
-          )}
         </div>
 
         {/* Actions */}
-        <div className="space-y-2">
-          {showCompleteButton && onComplete && (
-            <button
-              onClick={() => onComplete(order.id)}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2.5 px-4 rounded-lg transition-colors"
-            >
-              Mark Complete
-            </button>
-          )}
+        {showCompleteButton && !order.completedAt && (
+          <button
+            onClick={() => onComplete?.(order.id)}
+            className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
+          >
+            Mark Complete
+          </button>
+        )}
 
-          {showUncompleteButton && onUncomplete && (
-            <button
-              onClick={() => onUncomplete(order.id)}
-              className="w-full bg-neutral-200 hover:bg-neutral-300 text-neutral-700 font-medium py-2.5 px-4 rounded-lg transition-colors"
-            >
-              Remove Completion
-            </button>
-          )}
-        </div>
+        {showUncompleteButton && order.completedAt && (
+          <button
+            onClick={() => onUncomplete?.(order.id)}
+            className="w-full py-3 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 font-medium rounded-lg transition-colors"
+          >
+            Undo Complete
+          </button>
+        )}
       </div>
     </div>
   );
