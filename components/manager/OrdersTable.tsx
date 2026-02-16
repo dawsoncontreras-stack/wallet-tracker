@@ -1,12 +1,9 @@
-// components/manager/OrdersTable.tsx
-// UPDATED to handle new wallet_type format (full product names)
-
 'use client';
 
-import { useState } from 'react';
-import { OrderDetail, Sewer } from '@/lib/supabase';
-import { Search, MoreVertical, Trash2, UserPlus, CheckCircle } from 'lucide-react';
+import { OrderDetail, Sewer, supabase } from '@/lib/supabase';
 import { format } from 'date-fns';
+import { MoreVertical, UserCircle, CheckCircle, XCircle, Search } from 'lucide-react';
+import { useState, useRef, useEffect, MutableRefObject } from 'react';
 
 interface OrdersTableProps {
   orders: OrderDetail[];
@@ -17,54 +14,82 @@ interface OrdersTableProps {
 }
 
 export default function OrdersTable({ orders, sewers, onReassign, onToggleComplete, onVoid }: OrdersTableProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'void'>('all');
-  const [showActionsFor, setShowActionsFor] = useState<string | null>(null);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [showReassignFor, setShowReassignFor] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'completed'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
+  const reassignRef = useRef<HTMLDivElement | null>(null) as MutableRefObject<HTMLDivElement | null>;
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: 'bg-yellow-100 text-yellow-700',
-      in_progress: 'bg-blue-100 text-blue-700',
-      completed: 'bg-green-100 text-green-700',
-      void: 'bg-neutral-100 text-neutral-500'
+  const activeSewers = sewers.filter(s => s.is_active);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setActiveMenu(null);
+      }
+      if (reassignRef.current && !reassignRef.current.contains(event.target as Node)) {
+        setShowReassignFor(null);
+      }
     };
 
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles] || styles.pending}`}>
-        {status.replace('_', ' ')}
-      </span>
-    );
-  };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  // Filter orders
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter(o => {
+    if (o.status === 'void') return false;
+    
     // Status filter
-    if (statusFilter !== 'all' && order.status !== statusFilter) return false;
+    if (statusFilter !== 'all' && o.status !== statusFilter) {
+      return false;
+    }
 
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      return (
-        order.order_number.toLowerCase().includes(query) ||
-        order.orderer_name?.toLowerCase().includes(query) ||
-        order.wallet_type?.toLowerCase().includes(query)
-      );
+      const matchesOrderNumber = o.order_number.toLowerCase().includes(query);
+      const matchesOrderer = o.orderer_name?.toLowerCase().includes(query);
+      const matchesWalletType = o.wallet_type?.toLowerCase().includes(query);
+      return matchesOrderNumber || matchesOrderer || matchesWalletType;
     }
-
+    
     return true;
   });
 
+  const getStatusBadge = (status: OrderDetail['status']) => {
+    const styles = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      in_progress: 'bg-blue-100 text-blue-800',
+      completed: 'bg-green-100 text-green-800',
+      void: 'bg-red-100 text-red-800',
+    };
+    
+    const labels = {
+      pending: 'Pending',
+      in_progress: 'In Progress',
+      completed: 'Completed',
+      void: 'Void',
+    };
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
+        {labels[status]}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex gap-4 flex-wrap">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-neutral-900">Order Management</h2>
         <div className="flex gap-2">
-          {(['all', 'pending', 'in_progress', 'completed', 'void'] as const).map((filter) => (
+          {(['all', 'in_progress', 'completed'] as const).map((filter) => (
             <button
               key={filter}
               onClick={() => setStatusFilter(filter)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 statusFilter === filter
                   ? 'bg-primary-500 text-white'
                   : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
@@ -120,83 +145,158 @@ export default function OrdersTable({ orders, sewers, onReassign, onToggleComple
                 <td className="py-3 px-4 text-right">
                   <div className="relative inline-block">
                     <button
-                      onClick={() => setShowActionsFor(showActionsFor === order.id ? null : order.id)}
-                      className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                      data-order={order.id}
+                      ref={(el) => {
+                        if (el && activeMenu === order.id) {
+                          const rect = el.getBoundingClientRect();
+                          const dropdown = document.getElementById(`dropdown-${order.id}`);
+                          if (dropdown) {
+                            const dropdownHeight = dropdown.offsetHeight || 400; // estimate if not rendered
+                            const spaceBelow = window.innerHeight - rect.bottom;
+                            const spaceAbove = rect.top;
+                            
+                            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                              // Position above if more space
+                              dropdown.style.top = `${rect.top - dropdownHeight - 8}px`;
+                            } else {
+                              // Position below
+                              dropdown.style.top = `${rect.bottom + 8}px`;
+                            }
+                            dropdown.style.left = `${rect.right - 224}px`;
+                          }
+                        }
+                      }}
+                      onClick={() => setActiveMenu(activeMenu === order.id ? null : order.id)}
+                      className="p-1 hover:bg-neutral-200 rounded transition-colors"
                     >
                       <MoreVertical className="w-4 h-4 text-neutral-600" />
                     </button>
                     
-                    {showActionsFor === order.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 z-10">
-                        {/* Toggle Complete/Uncomplete */}
-                        {order.status !== 'void' && (
-                          <button
-                            onClick={async () => {
-                              await onToggleComplete(order.id);
-                              setShowActionsFor(null);
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-2"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                            {order.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete'}
-                          </button>
-                        )}
+                    {activeMenu === order.id && !isProcessing && (
+                      <>
+                        {/* Backdrop to close menu on click outside */}
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setActiveMenu(null)}
+                        />
                         
-                        {/* Reassign */}
-                        {order.status !== 'void' && order.status !== 'completed' && (
+                        {/* Menu */}
+                        <div 
+                          id={`dropdown-${order.id}`}
+                          ref={menuRef}
+                          className="fixed z-50 w-56 bg-white rounded-lg shadow-xl border border-neutral-200 py-1"
+                        >
+                          {/* Toggle Complete/Uncomplete */}
+                          {order.status !== 'void' && (
+                            <button
+                              onClick={async () => {
+                                setIsProcessing(true);
+                                await onToggleComplete(order.id);
+                                setActiveMenu(null);
+                                setTimeout(() => setIsProcessing(false), 100);
+                              }}
+                              className="w-full px-3 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              {order.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete'}
+                            </button>
+                          )}
+                          
+                          {/* Reassign - for all non-void orders */}
+                          {order.status !== 'void' && order.status !== 'completed' && (
+                            <>
+                              <div className="border-t border-neutral-200 my-1"></div>
+                              <button
+                                onClick={() => {
+                                  setShowReassignFor(order.id);
+                                  setActiveMenu(null);
+                                }}
+                                className="w-full px-3 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                              >
+                                <UserCircle className="w-4 h-4" />
+                                {order.claimed_by ? 'Reassign' : 'Assign to Sewer'}
+                              </button>
+                            </>
+                          )}
+                          
+                          <div className="border-t border-neutral-200 my-1"></div>
+                          
+                          {/* Void */}
                           <button
                             onClick={() => {
-                              setShowReassignFor(order.id);
-                              setShowActionsFor(null);
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2"
-                          >
-                            <UserPlus className="w-4 h-4" />
-                            Reassign
-                          </button>
-                        )}
-                        
-                        {/* Void */}
-                        <button
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to void order ${order.order_number}?`)) {
                               onVoid(order.id);
-                              setShowActionsFor(null);
-                            }
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Void Order
-                        </button>
-                      </div>
+                              setActiveMenu(null);
+                            }}
+                            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Void Order
+                          </button>
+                        </div>
+                      </>
                     )}
                     
-                    {/* Reassign Modal */}
-                    {showReassignFor === order.id && (
-                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-neutral-200 z-20 p-4">
-                        <h4 className="font-semibold text-sm mb-3">Reassign to:</h4>
-                        <div className="space-y-1 max-h-48 overflow-y-auto">
-                          {sewers.filter(s => s.is_active).map(sewer => (
-                            <button
-                              key={sewer.id}
-                              onClick={async () => {
-                                await onReassign(order.id, sewer.id);
-                                setShowReassignFor(null);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-100 rounded"
-                            >
-                              {sewer.name}
-                            </button>
-                          ))}
-                        </div>
-                        <button
+                    {/* Reassign Submenu */}
+                    {showReassignFor === order.id && !isProcessing && (
+                      <>
+                        {/* Backdrop */}
+                        <div 
+                          className="fixed inset-0 z-40" 
                           onClick={() => setShowReassignFor(null)}
-                          className="mt-3 w-full px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100 rounded"
+                        />
+                        
+                        {/* Reassign Menu */}
+                        <div 
+                          id={`reassign-${order.id}`}
+                          ref={(el) => {
+                            reassignRef.current = el;
+                            if (el) {
+                              const button = document.querySelector(`button[data-order="${order.id}"]`);
+                              if (button) {
+                                const rect = button.getBoundingClientRect();
+                                const dropdownHeight = el.offsetHeight || 400;
+                                const spaceBelow = window.innerHeight - rect.bottom;
+                                const spaceAbove = rect.top;
+                                
+                                if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                                  el.style.top = `${rect.top - dropdownHeight - 8}px`;
+                                } else {
+                                  el.style.top = `${rect.bottom + 8}px`;
+                                }
+                                el.style.left = `${rect.right - 224}px`;
+                              }
+                            }
+                          }}
+                          className="fixed z-50 w-56 bg-white rounded-lg shadow-xl border border-neutral-200 py-1 max-h-96 overflow-y-auto"
                         >
-                          Cancel
-                        </button>
-                      </div>
+                          <div className="px-3 py-2 text-xs font-semibold text-neutral-500 uppercase">
+                            {order.claimed_by ? 'Reassign to' : 'Assign to'}
+                          </div>
+                          {activeSewers.length > 0 ? (
+                            activeSewers.map((sewer) => (
+                              <button
+                                key={sewer.id}
+                                onClick={async () => {
+                                  setIsProcessing(true);
+                                  setShowReassignFor(null);
+                                  await onReassign(order.id, sewer.id);
+                                  setTimeout(() => setIsProcessing(false), 100);
+                                }}
+                                className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100 flex items-center gap-2"
+                                disabled={sewer.id === order.claimed_by}
+                              >
+                                <UserCircle className="w-4 h-4" />
+                                {sewer.name}
+                                {sewer.id === order.claimed_by && (
+                                  <span className="ml-auto text-xs text-primary-600">(current)</span>
+                                )}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-neutral-500">No active sewers</div>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 </td>
@@ -207,7 +307,7 @@ export default function OrdersTable({ orders, sewers, onReassign, onToggleComple
 
         {filteredOrders.length === 0 && (
           <div className="text-center py-12 text-neutral-500">
-            No orders found
+            No orders found for this filter
           </div>
         )}
       </div>
