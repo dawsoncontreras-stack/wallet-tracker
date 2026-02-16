@@ -22,165 +22,166 @@
 }
 
 @layer components {
-  /* Override white backgrounds */
-  .bg-white {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
+  /* Override white backgrounds - using higher specificity */
+  body .bg-white,
+  [class*="bg-white"] {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
   }
 
   /* Dark backgrounds */
-  .bg-neutral-50,
-  .bg-neutral-100 {
-    background-color: #1e293b !important;
+  body .bg-neutral-50,
+  body .bg-neutral-100 {
+    background-color: #1e293b;
   }
 
-  .bg-neutral-200 {
-    background-color: #334155 !important;
+  body .bg-neutral-200 {
+    background-color: #334155;
   }
 
   /* Light text on dark backgrounds */
-  .text-neutral-900,
-  .text-neutral-800,
-  .text-neutral-700 {
-    color: var(--text-primary) !important;
+  body .text-neutral-900,
+  body .text-neutral-800,
+  body .text-neutral-700 {
+    color: var(--text-primary);
   }
 
-  .text-neutral-600 {
-    color: var(--text-secondary) !important;
+  body .text-neutral-600 {
+    color: var(--text-secondary);
   }
 
-  .text-neutral-500 {
-    color: var(--text-muted) !important;
+  body .text-neutral-500 {
+    color: var(--text-muted);
   }
 
   /* Borders */
-  .border-neutral-200,
-  .border-neutral-300 {
-    border-color: var(--border-color) !important;
+  body .border-neutral-200,
+  body .border-neutral-300 {
+    border-color: var(--border-color);
   }
 
   /* Hover states */
-  .hover\:bg-neutral-50:hover,
-  .hover\:bg-neutral-100:hover {
-    background-color: #334155 !important;
+  body .hover\:bg-neutral-50:hover,
+  body .hover\:bg-neutral-100:hover {
+    background-color: #334155;
   }
 
-  .hover\:bg-neutral-200:hover {
-    background-color: #475569 !important;
+  body .hover\:bg-neutral-200:hover {
+    background-color: #475569;
   }
 
-  .hover\:bg-neutral-300:hover {
-    background-color: #64748b !important;
+  body .hover\:bg-neutral-300:hover {
+    background-color: #64748b;
   }
 
-  .hover\:text-neutral-900:hover {
-    color: var(--text-primary) !important;
+  body .hover\:text-neutral-900:hover {
+    color: var(--text-primary);
   }
 
   /* Form inputs */
-  input,
-  select,
-  textarea {
-    background-color: #1e293b !important;
-    color: var(--text-primary) !important;
-    border-color: #475569 !important;
+  body input,
+  body select,
+  body textarea {
+    background-color: #1e293b;
+    color: var(--text-primary);
+    border-color: #475569;
   }
 
-  input::placeholder {
-    color: #64748b !important;
+  body input::placeholder {
+    color: #64748b;
   }
 
   /* Status badges */
-  .bg-yellow-100 {
-    background-color: rgba(234, 179, 8, 0.2) !important;
-    color: #fbbf24 !important;
-    border: 1px solid rgba(234, 179, 8, 0.3) !important;
+  body .bg-yellow-100 {
+    background-color: rgba(234, 179, 8, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(234, 179, 8, 0.3);
   }
 
-  .bg-blue-100 {
-    background-color: rgba(59, 130, 246, 0.2) !important;
-    color: #60a5fa !important;
-    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  body .bg-blue-100 {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
   }
 
-  .bg-green-100 {
-    background-color: rgba(34, 197, 94, 0.2) !important;
-    color: #4ade80 !important;
-    border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  body .bg-green-100 {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
   }
 
-  .bg-red-100 {
-    background-color: rgba(239, 68, 68, 0.2) !important;
-    color: #f87171 !important;
-    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  body .bg-red-100 {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
   }
 
-  .text-yellow-800 {
-    color: #fbbf24 !important;
+  body .text-yellow-800 {
+    color: #fbbf24;
   }
 
-  .text-blue-800 {
-    color: #60a5fa !important;
+  body .text-blue-800 {
+    color: #60a5fa;
   }
 
-  .text-green-800 {
-    color: #4ade80 !important;
+  body .text-green-800 {
+    color: #4ade80;
   }
 
-  .text-red-800 {
-    color: #f87171 !important;
+  body .text-red-800 {
+    color: #f87171;
   }
 
   /* Alert boxes */
-  .bg-blue-50 {
-    background-color: rgba(59, 130, 246, 0.1) !important;
+  body .bg-blue-50 {
+    background-color: rgba(59, 130, 246, 0.1);
   }
 
-  .text-blue-900,
-  .text-blue-600 {
-    color: #93c5fd !important;
+  body .text-blue-900,
+  body .text-blue-600 {
+    color: #93c5fd;
   }
 
-  .bg-red-50 {
-    background-color: rgba(239, 68, 68, 0.1) !important;
+  body .bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.1);
   }
 
-  .text-red-600,
-  .text-red-700 {
-    color: #fca5a5 !important;
+  body .text-red-600,
+  body .text-red-700 {
+    color: #fca5a5;
   }
 
-  .hover\:bg-red-50:hover {
-    background-color: rgba(239, 68, 68, 0.2) !important;
+  body .hover\:bg-red-50:hover {
+    background-color: rgba(239, 68, 68, 0.2);
   }
 
   /* Tables */
-  tbody tr {
-    border-color: #334155 !important;
+  body tbody tr {
+    border-color: #334155;
   }
 
-  tbody tr:hover {
-    background-color: #1e293b !important;
+  body tbody tr:hover {
+    background-color: #1e293b;
   }
 
   /* Shadows - stronger for dark mode */
-  .shadow-sm {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5) !important;
+  body .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
   }
 
-  .shadow-md {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5) !important;
+  body .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
   }
 
-  .shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6) !important;
+  body .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
   }
 
-  .shadow-xl {
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7) !important;
+  body .shadow-xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
   }
 
-  .shadow-2xl {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+  body .shadow-2xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
   }
 }

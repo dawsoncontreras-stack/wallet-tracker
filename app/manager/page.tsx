@@ -254,72 +254,77 @@ if (!isManager) return null;
               className="flex items-center gap-2 px-4 py-2 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              Sign Out
+              <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>
       </header>
     
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
         
-       {/* View Tabs */}
-        <div className="flex gap-2 mb-6 mt-2 items-center justify-between relative after:absolute after:bottom-0 after:left-[calc(-50vw+50%)] after:right-[calc(-50vw+50%)] after:h-px after:bg-neutral-200">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setView('calendar')}
-              className={`px-6 py-3 font-medium transition-colors border-b-2 ${
-                view === 'calendar'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700'
-              }`}
-            >
-              Performance Calendar
-            </button>
-            <button
-              onClick={() => setView('metrics')}
-              className={`px-6 py-3 font-medium transition-colors border-b-2 ${
-                view === 'metrics'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700'
-              }`}
-            >
-              Sewer Metrics
-            </button>
-            <button
-              onClick={() => setView('orders')}
-              className={`px-6 py-3 font-medium transition-colors border-b-2 ${
-                view === 'orders'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700'
-              }`}
-            >
-              Order Management
-            </button>
-            <button
-              onClick={() => setView('sewers')}
-              className={`px-6 py-3 font-medium transition-colors border-b-2 flex items-center gap-2 ${
-                view === 'sewers'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700'
-              }`}
-            >
-              <UserPlus className="w-4 h-4" />
-              Manage Sewers
-            </button>
-          </div>
-          
-          {/* Date Range Picker */}
-          {view && (
-            <div className="mb-2">
-              <DateRangePicker
-                startDate={dateRange.start}
-                endDate={dateRange.end}
-                onChange={setDateRange}
-                currentPreset={currentPreset}
-                onPresetChange={setCurrentPreset}
-              />
+       {/* View Tabs - Now Mobile Friendly */}
+        <div className="mb-6 mt-2">
+          {/* Tabs Container */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-neutral-200">
+            {/* Tabs - Scrollable on mobile */}
+            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <button
+                onClick={() => setView('calendar')}
+                className={`px-4 sm:px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
+                  view === 'calendar'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                }`}
+              >
+                Performance Calendar
+              </button>
+              <button
+                onClick={() => setView('metrics')}
+                className={`px-4 sm:px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
+                  view === 'metrics'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                }`}
+              >
+                Sewer Metrics
+              </button>
+              <button
+                onClick={() => setView('orders')}
+                className={`px-4 sm:px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
+                  view === 'orders'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                }`}
+              >
+                Orders Management
+              </button>
+              <button
+                onClick={() => setView('sewers')}
+                className={`px-4 sm:px-6 py-3 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                  view === 'sewers'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                }`}
+              >
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Manage</span> Sewers
+              </button>
             </div>
-          )}
+            
+            {/* Date Range Picker - Stacks on mobile */}
+            {view && (
+              <div className="flex-shrink-0">
+                <DateRangePicker
+                  startDate={dateRange.start}
+                  endDate={dateRange.end}
+                  onChange={setDateRange}
+                  currentPreset={currentPreset}
+                  onPresetChange={setCurrentPreset}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stats Overview */}
@@ -372,7 +377,7 @@ if (!isManager) return null;
         
 
         {/* Content Area */}
-        <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-4 sm:p-6">
           
           {view === 'calendar' && (
             <PerformanceCalendar 
