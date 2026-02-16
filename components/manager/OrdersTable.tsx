@@ -128,7 +128,7 @@ export default function OrdersTable({ orders, sewers, onReassign, onToggleComple
           </thead>
           <tbody>
             {filteredOrders.map((order) => (
-              <tr key={order.id} className="border-b border-neutral-100 hover:bg-neutral-50">
+              <tr key={order.id} className="border-b border-neutral-300 hover:bg-neutral-200">
                 <td className="py-3 px-4 text-sm font-medium text-neutral-900">{order.order_number}</td>
                 <td className="py-3 px-4 text-sm text-neutral-700">
                   {/* Display wallet_type directly (now contains full product names) */}

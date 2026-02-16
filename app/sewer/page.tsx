@@ -76,6 +76,7 @@ useEffect(() => {
     if (o.status !== 'pending' && o.status !== 'in_progress') return false;
     // if (o.status === 'void') return false;
 
+
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -86,6 +87,9 @@ useEffect(() => {
     
     return true;
   });
+  const totalPendingPoints = orders
+    .filter(o => o.status === 'pending' || o.status === 'in_progress')
+    .reduce((sum, o) => sum + o.points, 0);
 
   // Filter for completed orders by this sewer (with date range)
   const completedOrders = orders.filter(o => {
@@ -230,6 +234,9 @@ useEffect(() => {
               <span className="text-3xl font-bold text-neutral-900">{openOrders.length}</span>
             </div>
             <p className="text-neutral-500 text-sm font-medium">Available Orders</p>
+            <div className="mt-2 text-xs text-primary-200">
+              {totalPendingPoints} pending points
+            </div>
           </div>
         </div>
 

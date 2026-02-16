@@ -136,7 +136,7 @@ if (!isManager) return null;
     .filter(o => o.status === 'pending' || o.status === 'in_progress')
     .reduce((sum, o) => sum + o.points, 0);
   
-  const estimatedTime = Math.ceil(totalPendingPoints * 15 / 60); // 15 min per point
+  const estimatedTime = Math.ceil(totalPendingPoints * 5 / 30); // 15 min per point
   const activeSewers = sewers.filter(s => s.is_active).length;
 
   const handleReassignOrder = async (orderId: string, newSewerId: string) => {
